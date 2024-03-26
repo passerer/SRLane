@@ -1,5 +1,13 @@
 ## Sketch and Refine: Towards Fast and Accurate Lane Detection
-Currently still under development.
+![image](img/SRLane_Performance.png)
+
+
+
+
+The repository is still under development and more features will be added. However, I am occupied with other work, so the update frequency is not guaranteed.
+
+------
+
 ### Install
 ```bash
 git clone https://github.com/passerer/SRLane.git
