@@ -1,0 +1,11 @@
+imgaug==0.4.0
+lightning==2.0.7
+mmengine==0.8.4
+mmcv==1.2.5
+numpy==1.24.4
+opencv_python==4.8.0.76
+Pillow==10.0.0
+scikit_learn==1.3.0
+Shapely==1.7.0
+six==1.16.0
+tqdm==4.66.1

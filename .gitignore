@@ -1,0 +1,40 @@
+# System / compiler
+__pycache__/
+.vscode
+.idea
+.DS_Store
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg\
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Log
+*.log
+
+# Cache
+cache/
+.cache/
+
+# Pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# custom
+work_dirs/
+data/
+*.pth
