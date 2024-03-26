@@ -18,8 +18,23 @@ Here is an example
 CUDA_VISIBLE_DEVICES=0 python tools/main.py configs/exp_srlane_culane.py
 ```
 ### Test
-Here is an example
-
+#### Performance
+Here is an example:
 ```bash
 CUDA_VISIBLE_DEVICES=0 python tools/main.py configs/exp_srlane_culane.py --load_from checkpoint/baseline.pth --validate
+```
+The results should be:
+
+|  SET  |  F1  |  SET  |  F1  |
+|:-----:|:----:|:-----:|:----:|
+| total |0.7973| noline|0.5565|
+| normal|0.9352| arrow |0.8950|
+| crowd |0.7858| curve |0.7527|
+| hlight|0.7413| cross |1412 (FP)|
+| shadow|0.8190| night |0.7458|
+
+#### Runtime
+Here is an example:
+```bash
+CUDA_VISIBLE_DEVICES=0 python tools/analysis_tools/speed_measure.py configs/exp_srlane_culane.py
 ```
