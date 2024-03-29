@@ -46,3 +46,8 @@ Here is an example:
 ```bash
 CUDA_VISIBLE_DEVICES=0 python tools/analysis_tools/speed_measure.py configs/exp_srlane_culane.py
 ```
+
+### Acknowledgement
+
+* [Turoad/CLRNet](https://github.com/Turoad/CLRNet/)
+* [hirotomusiker/CLRerNet](https://github.com/hirotomusiker/CLRerNet)

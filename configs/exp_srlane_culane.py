@@ -7,7 +7,7 @@ work_dirs = "work_dirs/sr_cu"
 
 iou_loss_weight = 2.
 cls_loss_weight = 2.
-xyt_loss_weight = 0.2
+l1_loss_weight = 0.2
 angle_loss_weight = 5
 attn_loss_weight = 0.  # 0.05
 seg_loss_weight = 0.  # 0.5

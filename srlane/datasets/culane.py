@@ -4,6 +4,7 @@ from os.path import join
 
 import numpy as np
 import pickle as pkl
+from tqdm import tqdm
 
 import srlane.evaluation.culane_metric as culane_metric
 from .base_dataset import BaseDataset
@@ -51,7 +52,7 @@ class CULane(BaseDataset):
         self.data_infos = []
         with open(self.list_path) as list_file:
             prev_img = np.zeros(1)
-            for i, line in enumerate(list_file):
+            for i, line in tqdm(enumerate(list_file)):
                 infos = {}
                 line = line.split()
                 img_line = line[0]
