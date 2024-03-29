@@ -25,7 +25,6 @@ def sampling_3d(
         sample_points: torch.Tensor,
         weight: torch.Tensor,
         multi_lvl_values,
-        tau=2.0,
 ):
     B, n_queries, n_points, _ = sample_points.shape
     B, C, _, _ = multi_lvl_values[0].shape

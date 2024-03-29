@@ -149,3 +149,7 @@ class LocalAngleHead(nn.Module):
                     "seg_loss": seg_loss, }
 
         return {"angle_loss": angle_loss}
+
+    def __repr__(self):
+        num_params = sum(map(lambda x: x.numel(), self.parameters()))
+        return f"#Params of {self._get_name()}: {num_params / 10 ** 3:<.2f}[K]"

@@ -62,8 +62,6 @@ class RefineHead(nn.Module):
         self.prior_feat_channels = prior_feat_channels
         self.z_embeddings = nn.Parameter(torch.zeros(self.sample_points),
                                          requires_grad=True)
-        self.z_weight = self.translate_to_linear_weight(self.z_embeddings,
-                                                        self.num_level)
 
         self.gather_fc = nn.Conv1d(sample_points, fc_hidden_dim,
                                    kernel_size=prior_feat_channels,
@@ -102,6 +100,7 @@ class RefineHead(nn.Module):
         nn.init.normal_(self.z_embeddings, mean=self.cfg.z_mean[self.stage],
                         std=self.cfg.z_std[self.stage])
 
+
     def translate_to_linear_weight(self,
                                    ref: Tensor,
                                    num_total: int = 3,
@@ -132,9 +131,9 @@ class RefineHead(nn.Module):
             batch_size, num_priors, -1, 1)
 
         grid = torch.cat((prior_feat_xs, prior_feat_ys), dim=-1)
-        if True or self.training:
-            self.z_weight = self.translate_to_linear_weight(self.z_embeddings)
-            z_weight = self.z_weight.view(1, 1, self.sample_points, -1).expand(
+        if self.training or not hasattr(self, "z_weight"):
+            z_weight = self.translate_to_linear_weight(self.z_embeddings)
+            z_weight = z_weight.view(1, 1, self.sample_points, -1).expand(
                 batch_size,
                 num_priors,
                 self.sample_points,
@@ -148,8 +147,6 @@ class RefineHead(nn.Module):
 
         feature = sampling_3d(grid, z_weight,
                               batch_features)  # (b, n_prior, n_point, c)
-        feature = feature
-
         feature = feature.view(batch_size * num_priors, -1,
                                self.prior_feat_channels)
         feature = self.gather_fc(feature).reshape(batch_size, num_priors, -1)
@@ -200,12 +197,12 @@ class RefineHead(nn.Module):
 @HEADS.register_module
 class CascadeRefineHead(nn.Module):
     def __init__(self,
-                 num_points=72,
-                 prior_feat_channels=64,
-                 fc_hidden_dim=64,
-                 refine_layers=1,
-                 sample_points=36,
-                 num_groups=6,
+                 num_points: int = 72,
+                 prior_feat_channels: int = 64,
+                 fc_hidden_dim: int = 64,
+                 refine_layers: int = 1,
+                 sample_points: int= 36 ,
+                 num_groups: int = 6,
                  cfg=None):
         super(CascadeRefineHead, self).__init__()
         self.cfg = cfg
@@ -234,6 +231,8 @@ class CascadeRefineHead(nn.Module):
                            sample_points=sample_points,
                            num_groups=num_groups,
                            cfg=cfg))
+
+        self.cls_criterion = FocalLoss(alpha=0.25, gamma=2.)
 
     def forward(self, x, **kwargs):
         batch_features = list(x)
@@ -266,10 +265,9 @@ class CascadeRefineHead(nn.Module):
         predictions_lists = output["predictions_lists"]
         attn_lists = output["attn_lists"]
         targets = batch["gt_lane"].clone()
-        cls_criterion = FocalLoss(alpha=0.25, gamma=2.)
 
         cls_loss = 0
-        xyt_loss = 0
+        l1_loss = 0
         iou_loss = 0
         attn_loss = 0
 
@@ -283,7 +281,7 @@ class CascadeRefineHead(nn.Module):
                     cls_target = predictions.new_zeros(
                         predictions.shape[0]).long()
                     cls_pred = predictions[:, :2]
-                    cls_loss = cls_loss + cls_criterion(
+                    cls_loss = cls_loss + self.cls_criterion(
                         cls_pred, cls_target).sum()
                     continue
 
@@ -321,22 +319,22 @@ class CascadeRefineHead(nn.Module):
                 reg_targets = target[matched_col_inds, 4:].clone()
 
                 # Loss calculation
-                cls_loss = cls_loss + cls_criterion(cls_pred, cls_target).sum(
+                cls_loss = cls_loss + self.cls_criterion(cls_pred, cls_target).sum(
                 ) / target.shape[0]
 
-                xyt_loss = xyt_loss + F.smooth_l1_loss(reg_yl, target_yl,
+                l1_loss = l1_loss + F.smooth_l1_loss(reg_yl, target_yl,
                                                        reduction="mean")
 
                 iou_loss = iou_loss + liou_loss(reg_pred, reg_targets,
                                                 self.img_w)
 
         cls_loss /= (len(targets) * self.refine_layers)
-        xyt_loss /= (len(targets) * self.refine_layers)
+        l1_loss /= (len(targets) * self.refine_layers)
         iou_loss /= (len(targets) * self.refine_layers)
         attn_loss /= (len(targets) * self.refine_layers)
 
         return_value = {"cls_loss": cls_loss,
-                        "xyt_loss": xyt_loss,
+                        "l1_loss": l1_loss,
                         "iou_loss": iou_loss,
                         "attn_loss": attn_loss}
 
@@ -346,8 +344,8 @@ class CascadeRefineHead(nn.Module):
         """
         Convert predictions to internal Lane structure for evaluation.
         """
-        self.prior_ys = self.prior_ys.to(predictions.device)
-        self.prior_ys = self.prior_ys.double()
+        prior_ys = self.prior_ys.to(predictions.device)
+        prior_ys = prior_ys.double()
         lanes = []
 
         for lane in predictions:
@@ -362,7 +360,7 @@ class CascadeRefineHead(nn.Module):
                        ).cpu().numpy()[::-1].cumprod()[::-1]).astype(bool))
             lane_xs[end + 1:] = -2
             lane_xs[:start][mask] = -2
-            lane_ys = self.prior_ys[(lane_xs >= 0.) & (lane_xs <= 1.)]
+            lane_ys = prior_ys[(lane_xs >= 0.) & (lane_xs <= 1.)]
             lane_xs = lane_xs[(lane_xs >= 0.) & (lane_xs <= 1.)]
             if len(lane_xs) <= 1:
                 continue

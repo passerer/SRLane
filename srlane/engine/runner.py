@@ -25,7 +25,9 @@ class Runner(object):
         self.load_network()
         self.optimizer = build_optimizer(self.cfg, self.net)
         self.scheduler = build_scheduler(self.cfg, self.optimizer)
-        self.fabric = Fabric(accelerator="cuda", devices=1, strategy="dp",
+        self.fabric = Fabric(accelerator="cuda",
+                             devices=cfg.gpus,
+                             strategy="dp",
                              precision=cfg.precision)
         self.fabric.launch()
         self.net, self.optimizer = self.fabric.setup(self.net, self.optimizer)
@@ -33,13 +35,6 @@ class Runner(object):
         self.val_loader = None
         self.test_loader = None
         self.metric = 0
-
-    def to_cuda(self, batch):
-        for k in batch:
-            if not isinstance(batch[k], torch.Tensor):
-                continue
-            batch[k] = batch[k].cuda()
-        return batch
 
     def load_network(self):
         if not self.cfg.load_from:

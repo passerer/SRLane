@@ -16,9 +16,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Speed measure")
     parser.add_argument("config",
                         help="Config file path")
-    parser.add_argument("--repetitions", default=1000,
+    parser.add_argument("--repetitions", default=1000, type=int,
                         help="Repeat times")
-    parser.add_argument("--warmup", default=200,
+    parser.add_argument("--warmup", default=200, type=int,
                         help="Trigger GPU initialization")
     args = parser.parse_args()
     args.cuda = True

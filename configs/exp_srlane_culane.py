@@ -18,7 +18,6 @@ eval_ep = 3
 workers = 8
 log_interval = 500
 
-ema = False
 precision = "16-mixed"  # "32"
 
 optimizer = dict(type="AdamW", lr=6e-4)
