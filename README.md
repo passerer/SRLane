@@ -4,7 +4,6 @@
 
 
 
-The repository is still under development and more features will be added. However, I am occupied with other work, so the update frequency is not guaranteed.
 
 ------
 
